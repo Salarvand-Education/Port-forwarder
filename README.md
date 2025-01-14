@@ -1,8 +1,8 @@
-# Port Forwarder Installation and Usage Guide
+## Port Forwarder Installation and Usage Guide
 
 **This script allows you to easily forward ports using X-Ray's Dokodemo Door protocol. You can install it with a single command and manage multiple port forwards.**
 
-## Installation
+# Installation
 
 # To install the **Port Forwarder**, simply run the following command in your terminal:
 
