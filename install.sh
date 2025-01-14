@@ -77,28 +77,17 @@ function remove_all_dokos() {
   systemctl restart xray
 }
 
-function forward_ports() {
+ function forward_ports() {
   echo "Forwarding ports..."
-  read -p "Enter the range of ports to forward (e.g., 1000-2000 or a single port like 8080): " PORTS
+  read -p "Enter the range of ports to forward (e.g., 1-10): " PORTS
   read -p "Enter the destination IP address: " DEST_IP
-  read -p "Enter the destination port: " DEST_PORT
-  echo "Select the network type:"
-  echo "1) TCP"
-  echo "2) UDP"
-  echo "3) Both (TCP, UDP)"
-  read -p "Enter your choice (1/2/3): " NETWORK_CHOICE
-
-  case $NETWORK_CHOICE in
-    1) NETWORK_TYPE="tcp" ;;
-    2) NETWORK_TYPE="udp" ;;
-    3) NETWORK_TYPE="tcp,udp" ;;
-    *) echo "Invalid choice. Defaulting to 'tcp,udp'."; NETWORK_TYPE="tcp,udp" ;;
-  esac
 
   if [[ $PORTS == *-* ]]; then
     START_PORT=$(echo $PORTS | cut -d '-' -f 1)
     END_PORT=$(echo $PORTS | cut -d '-' -f 2)
+
     for PORT in $(seq $START_PORT $END_PORT); do
+      # فوروارد هر پورت به پورت مشابه خودش
       jq ".inbounds += [{
         \"listen\": null,
         \"port\": $PORT,
@@ -106,25 +95,14 @@ function forward_ports() {
         \"settings\": {
           \"address\": \"$DEST_IP\",
           \"followRedirect\": false,
-          \"network\": \"$NETWORK_TYPE\",
-          \"port\": $DEST_PORT
+          \"network\": \"tcp,udp\",
+          \"port\": $PORT
         },
         \"tag\": \"doko-$PORT\"
       }]" $CONFIG_PATH > temp.json && mv temp.json $CONFIG_PATH
     done
   else
-    jq ".inbounds += [{
-      \"listen\": null,
-      \"port\": $PORTS,
-      \"protocol\": \"dokodemo-door\",
-      \"settings\": {
-        \"address\": \"$DEST_IP\",
-        \"followRedirect\": false,
-        \"network\": \"$NETWORK_TYPE\",
-        \"port\": $DEST_PORT
-      },
-      \"tag\": \"doko-$PORTS\"
-    }]" $CONFIG_PATH > temp.json && mv temp.json $CONFIG_PATH
+    echo "Invalid range format. Please use 'start-port-end-port' format."
   fi
 
   echo "Ports forwarded successfully!"
